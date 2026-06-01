@@ -11,6 +11,15 @@ const EnvSchema = z.object({
   BOT_WEBHOOK_URL: z.string().url().optional(),
   BOT_WEBHOOK_SECRET: z.string().min(16).optional(),
 
+  // Public HTTPS origin of the Mini App, e.g. https://subs-bot.example.com.
+  // Used to register the chat menu button. Optional in local dev.
+  WEBAPP_URL: z.string().url().optional(),
+  // Serve the built web/dist SPA from this server (production single-origin).
+  SERVE_WEBAPP: z
+    .string()
+    .optional()
+    .transform(v => v === 'true'),
+
   DATABASE_HOST: z.string().min(1),
   DATABASE_PORT: z.coerce.number().int().positive().default(5432),
   DATABASE_USERNAME: z.string().min(1),

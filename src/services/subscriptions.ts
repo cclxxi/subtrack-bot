@@ -33,12 +33,60 @@ export async function listSubscriptionsForUser(
   })
 }
 
+export type UpdateSubscriptionInput = Partial<
+  Pick<
+    NewSubscription,
+    | 'name'
+    | 'amount'
+    | 'currency'
+    | 'interval'
+    | 'intervalDays'
+    | 'nextBillingDate'
+    | 'notifyDaysBefore'
+    | 'cardId'
+    | 'isActive'
+  >
+>
+
+export async function getSubscriptionForUser(
+  db: DrizzleDB,
+  userId: string,
+  subscriptionId: string,
+): Promise<Subscription | null> {
+  const sub = await db.query.subscriptions.findFirst({
+    where: and(
+      eq(subscriptions.id, subscriptionId),
+      eq(subscriptions.userId, userId),
+    ),
+  })
+  return sub ?? null
+}
+
 export async function createSubscription(
   db: DrizzleDB,
   data: CreateSubscriptionInput,
 ): Promise<Subscription> {
   const [created] = await db.insert(subscriptions).values(data).returning()
   return created!
+}
+
+export async function updateSubscription(
+  db: DrizzleDB,
+  userId: string,
+  subscriptionId: string,
+  patch: UpdateSubscriptionInput,
+): Promise<Subscription | null> {
+  const [updated] = await db
+    .update(subscriptions)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(
+      and(
+        eq(subscriptions.id, subscriptionId),
+        eq(subscriptions.userId, userId),
+      ),
+    )
+    .returning()
+  return updated ?? null
 }
 
 export async function advanceNextBillingDate(

@@ -1,5 +1,6 @@
 import { InlineKeyboard } from 'grammy'
 
+import { env } from '../../env.ts'
 import type { AppContext } from '../index.ts'
 
 export const MENU_MAIN = 'menu:main'
@@ -11,7 +12,14 @@ export const MENU_SETTINGS = 'menu:settings'
 export const BACK_BUTTON_TEXT = '🏠 В меню'
 
 export function mainMenuKeyboard(): InlineKeyboard {
-  return new InlineKeyboard()
+  const keyboard = new InlineKeyboard()
+
+  // Prefer the rich Mini App when its public URL is configured.
+  if (env.WEBAPP_URL) {
+    keyboard.webApp('🚀 Открыть приложение', env.WEBAPP_URL).row()
+  }
+
+  return keyboard
     .text('📋 Подписки', MENU_SUBS)
     .text('💳 Карты', MENU_CARDS)
     .row()

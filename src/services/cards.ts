@@ -17,12 +17,37 @@ export async function listCardsForUser(
   })
 }
 
+export async function getCardForUser(
+  db: DrizzleDB,
+  userId: string,
+  cardId: string,
+): Promise<Card | null> {
+  const card = await db.query.cards.findFirst({
+    where: and(eq(cards.id, cardId), eq(cards.userId, userId)),
+  })
+  return card ?? null
+}
+
 export async function createCard(
   db: DrizzleDB,
   data: Pick<NewCard, 'userId' | 'label' | 'last4'>,
 ): Promise<Card> {
   const [created] = await db.insert(cards).values(data).returning()
   return created!
+}
+
+export async function updateCard(
+  db: DrizzleDB,
+  userId: string,
+  cardId: string,
+  patch: Partial<Pick<NewCard, 'label' | 'last4'>>,
+): Promise<Card | null> {
+  const [updated] = await db
+    .update(cards)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(and(eq(cards.id, cardId), eq(cards.userId, userId)))
+    .returning()
+  return updated ?? null
 }
 
 export async function archiveCard(

@@ -36,6 +36,18 @@ if (env.BOT_MODE === 'webhook') {
   })
 }
 
+// Register the persistent chat menu button that launches the Mini App.
+if (env.WEBAPP_URL) {
+  await bot.api.setChatMenuButton({
+    menu_button: {
+      type: 'web_app',
+      text: 'Подписки',
+      web_app: { url: env.WEBAPP_URL },
+    },
+  })
+  console.log(`WebApp menu button set: ${env.WEBAPP_URL}`)
+}
+
 const server = Bun.serve({
   port: env.PORT,
   fetch: app.fetch,

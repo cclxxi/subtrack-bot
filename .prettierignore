@@ -1,0 +1,8 @@
+node_modules
+dist
+drizzle
+bun.lock
+
+# The Mini App (web/) has its own React/TSX toolchain and is type-checked and
+# built separately; the backend Prettier config does not parse JSX.
+web

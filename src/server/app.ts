@@ -1,13 +1,21 @@
 import { type Bot, webhookCallback } from 'grammy'
 import { Hono } from 'hono'
+import { serveStatic } from 'hono/bun'
 
 import type { AppContext } from '../bot/index.ts'
 import { env } from '../env.ts'
 import type { DrizzleDB } from '../infra/database/drizzle'
 import { processTick } from '../scheduler/billing-notifier.ts'
+import { createApi } from './api/index.ts'
+import type { AppEnv } from './types.ts'
 
-export function createServer(bot: Bot<AppContext>, db: DrizzleDB): Hono {
-  const app = new Hono()
+const WEBAPP_DIST = './web/dist'
+
+export function createServer(
+  bot: Bot<AppContext>,
+  db: DrizzleDB,
+): Hono<AppEnv> {
+  const app = new Hono<AppEnv>()
 
   app.get('/healthz', c => c.json({ status: 'ok' }))
 
@@ -28,6 +36,17 @@ export function createServer(bot: Bot<AppContext>, db: DrizzleDB): Hono {
       const result = await processTick(db, bot)
       return c.json(result)
     })
+  }
+
+  app.route('/api', createApi(db))
+
+  // Serve the built Mini App SPA from the same origin. Registered after the
+  // API so /api and /tg/webhook always take precedence; the wildcard falls
+  // back to index.html for client-side routing.
+  if (env.SERVE_WEBAPP) {
+    app.use('/assets/*', serveStatic({ root: WEBAPP_DIST }))
+    app.get('/', serveStatic({ path: `${WEBAPP_DIST}/index.html` }))
+    app.get('*', serveStatic({ path: `${WEBAPP_DIST}/index.html` }))
   }
 
   return app

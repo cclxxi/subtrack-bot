@@ -25,5 +25,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  // The Mini App (web/) is a separate Vite project with its own tsconfig and
+  // DOM libs. Keep it out of the backend type-check.
+  "exclude": ["node_modules", "web"]
 }

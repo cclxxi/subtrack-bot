@@ -3,6 +3,32 @@ import { eq } from 'drizzle-orm'
 import type { DrizzleDB } from '../infra/database/drizzle'
 import { type User, users } from '../infra/database/drizzle/schema'
 
+export interface UpsertUserInput {
+  telegramId: number
+  username?: string | null
+  firstName?: string | null
+}
+
+export async function upsertUserByTelegramId(
+  db: DrizzleDB,
+  input: UpsertUserInput,
+): Promise<User> {
+  const existing = await db.query.users.findFirst({
+    where: eq(users.telegramId, input.telegramId),
+  })
+  if (existing) return existing
+
+  const [created] = await db
+    .insert(users)
+    .values({
+      telegramId: input.telegramId,
+      username: input.username ?? null,
+      firstName: input.firstName ?? null,
+    })
+    .returning()
+  return created!
+}
+
 export async function getUserById(
   db: DrizzleDB,
   userId: string,

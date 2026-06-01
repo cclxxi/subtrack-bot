@@ -1,0 +1,13 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--tgui--secondary_bg_color, #efeff4);
+}
+
+/* Breathing room above the native MainButton on form screens. */
+.page-bottom-pad {
+  padding-bottom: 96px;
+}

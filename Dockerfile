@@ -2,17 +2,25 @@
 FROM oven/bun:1-alpine AS base
 WORKDIR /app
 
-# --- deps: install once with lockfile; layer caches on bun.lock changes ---
+# --- deps: install backend deps once with lockfile; caches on bun.lock ---
 FROM base AS deps
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
-# --- check: type-check as a build gate ---
+# --- check: type-check the backend as a build gate ---
 FROM base AS check
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json bun.lock tsconfig.json ./
 COPY src ./src
 RUN bun x tsc --noEmit
+
+# --- web: build the Mini App SPA into /app/web/dist ---
+FROM base AS web
+WORKDIR /app/web
+COPY web/package.json web/bun.lock ./
+RUN bun install --frozen-lockfile
+COPY web ./
+RUN bun run build
 
 # --- runner: minimal final image ---
 FROM base AS runner
@@ -21,6 +29,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json bun.lock tsconfig.json ./
 COPY src ./src
 COPY drizzle ./drizzle
+COPY --from=web /app/web/dist ./web/dist
 
 USER bun
 EXPOSE 3000
