@@ -1,0 +1,48 @@
+services:
+  subs-bot:
+    build: .
+    image: subs-bot:latest
+    container_name: subs-bot
+    env_file: .env
+    environment:
+      # Override for in-network connectivity — local .env points to localhost
+      # for `bun run start` from the host; in compose we talk to the DB by
+      # container name.
+      DATABASE_HOST: subs-bot-db
+      DATABASE_PORT: 5432
+    depends_on:
+      subs-bot-db:
+        condition: service_healthy
+    ports:
+      - '3001:3000'
+    networks: [internal]
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    restart: unless-stopped
+
+  subs-bot-db:
+    image: postgres:16-alpine
+    container_name: subs-bot-db
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      # Comment this out in production if you don't need host access to DB.
+      # - '127.0.0.1:${DATABASE_PORT:-5432}:5432'
+    volumes:
+      - subs-bot-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+    restart: unless-stopped
+
+networks:
+  internal:
+
+volumes:
+  subs-bot-pgdata:
