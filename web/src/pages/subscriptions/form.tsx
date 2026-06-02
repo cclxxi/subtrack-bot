@@ -14,7 +14,7 @@ import { LoadingState } from '../../shared/ui/states.tsx'
 import { useMainButton } from '../../telegram/hooks.ts'
 import { hapticNotify } from '../../telegram/webapp.ts'
 
-const CURRENCIES = ['RUB', 'USD', 'EUR', 'KZT', 'GBP']
+const CURRENCIES = ['KGS', 'USD', 'RUB']
 const INTERVALS: { value: IntervalKind; label: string }[] = [
   { value: 'month', label: 'Ежемесячно' },
   { value: 'year', label: 'Ежегодно' },
